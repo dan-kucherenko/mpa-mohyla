@@ -2,13 +2,15 @@ package coder
 
 import (
 	"bufio"
+	"bytes"
 	"os"
 	"polish-notation/structure"
 	"regexp"
+	"strconv"
 	"strings"
 )
 
-func Code(filePath string) {
+func Code(filePath string) string {
 	var sb strings.Builder
 	stack := structure.Stack{}
 	f, err := os.Open(filePath)
@@ -18,57 +20,64 @@ func Code(filePath string) {
 	defer f.Close()
 
 	scanner := bufio.NewScanner(f)
-	scanner.Split(bufio.ScanRunes)
-	var prevChar string
-	var prevPrevChar string
-	for scanner.Scan() || stack.Len() != 0 {
-		char := scanner.Text()
-		if res, _ := isLetterOrNum(char); res {
-			prevIsNum, _ := isNum(prevChar)
-			if prevIsNum || prevChar == "" {
-				sb.WriteString(char)
-			} else if prevChar == "(" && prevPrevChar == "" {
-				sb.WriteString(char)
-			} else {
-				sb.WriteString(" ")
-				sb.WriteString(char)
-			}
-		} else if char == "(" {
-			stack.Push(char)
-		} else if char == ")" {
+	scanner.Scan()
+	query := scanner.Text()
+	tokens := strings.Fields(prepareTheQuery(query))
+
+	for _, tok := range tokens {
+		if res, _ := isLetterOrNum(tok); res {
+			sb.WriteString(tok)
+			sb.WriteString(" ")
+		} else if tok == "(" {
+			stack.Push(tok)
+		} else if tok == ")" {
 			for stack.Peek() != "(" && stack.Len() != 0 {
+				poppedToken := stack.Pop()
+				sb.WriteString(poppedToken)
 				sb.WriteString(" ")
-				sb.WriteString(stack.Pop())
 			}
 			stack.Pop()
-		} else if isOperator(char) {
-			for lessPrioritized(char, stack.Peek()) && stack.Len() != 0 {
-				sb.WriteString(stack.Pop())
+		} else if isOperator(tok) {
+			for lessPrioritized(tok, stack.Peek()) && stack.Len() != 0 {
+				poppedToken := stack.Pop()
+				sb.WriteString(poppedToken)
+				sb.WriteString(" ")
 			}
-			stack.Push(char)
-		} else {
-			sb.WriteString(" ")
-			sb.WriteString(stack.Pop())
+			stack.Push(tok)
 		}
-		prevPrevChar = prevChar
-		prevChar = char
+	}
+	for stack.Len() > 0 {
+		poppedEl := stack.Pop()
+		sb.WriteString(poppedEl)
+		sb.WriteString(" ")
 	}
 	_, err = writeToFile(sb)
 	if err != nil {
-		return
+		return ""
 	}
-}
-
-func isNum(s string) (bool, error) {
-	return regexp.MatchString("\\d", s)
+	return sb.String()
 }
 
 func isLetterOrNum(s string) (bool, error) {
 	return regexp.MatchString("\\w", s)
 }
 
+func prepareTheQuery(input string) string {
+	buf := &bytes.Buffer{}
+	for _, char := range input {
+		if isOperator(strconv.Itoa(int(char))) || char == 40 || char == 41 {
+			buf.WriteRune(' ')
+			buf.WriteRune(char)
+			buf.WriteRune(' ')
+		} else {
+			buf.WriteRune(char)
+		}
+	}
+	return buf.String()
+}
+
 func writeToFile(sb strings.Builder) (bool, error) {
-	file, err := os.Create("files/coded_polish_notation.txt")
+	file, err := os.Create("files/Expr_pol.txt")
 	if err != nil {
 		return false, err
 	}
@@ -81,10 +90,10 @@ func writeToFile(sb strings.Builder) (bool, error) {
 }
 
 func isOperator(curChar string) bool {
-	return curChar == "+" || curChar == "-" || curChar == "*" || curChar == "/"
+	return curChar == "+" || curChar == "43" || curChar == "-" || curChar == "45" || curChar == "*" || curChar == "42" || curChar == "/" || curChar == "47"
 }
 
-func lessPrioritized(oper1 string, oper2 string) bool {
+func lessPrioritized(oper1, oper2 string) bool {
 	return priority(oper1) <= priority(oper2)
 }
 
