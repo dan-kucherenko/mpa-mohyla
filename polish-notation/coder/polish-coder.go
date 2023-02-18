@@ -20,22 +20,18 @@ func Code(filePath string) {
 	scanner := bufio.NewScanner(f)
 	scanner.Split(bufio.ScanRunes)
 	var prevChar string
+	var prevPrevChar string
 	for scanner.Scan() || stack.Len() != 0 {
 		char := scanner.Text()
-		isLetterOrNum, _ := regexp.MatchString("\\w", char)
-		if isLetterOrNum {
-			prevIsNum, _ := regexp.MatchString("\\d", prevChar)
-			if prevIsNum {
+		if res, _ := isLetterOrNum(char); res {
+			prevIsNum, _ := isNum(prevChar)
+			if prevIsNum || prevChar == "" {
+				sb.WriteString(char)
+			} else if prevChar == "(" && prevPrevChar == "" {
 				sb.WriteString(char)
 			} else {
-				switch prevChar {
-				case "":
-					sb.WriteString(char)
-					break
-				default:
-					sb.WriteString(" ")
-					sb.WriteString(char)
-				}
+				sb.WriteString(" ")
+				sb.WriteString(char)
 			}
 		} else if char == "(" {
 			stack.Push(char)
@@ -54,12 +50,21 @@ func Code(filePath string) {
 			sb.WriteString(" ")
 			sb.WriteString(stack.Pop())
 		}
+		prevPrevChar = prevChar
 		prevChar = char
 	}
 	_, err = writeToFile(sb)
 	if err != nil {
 		return
 	}
+}
+
+func isNum(s string) (bool, error) {
+	return regexp.MatchString("\\d", s)
+}
+
+func isLetterOrNum(s string) (bool, error) {
+	return regexp.MatchString("\\w", s)
 }
 
 func writeToFile(sb strings.Builder) (bool, error) {
@@ -76,20 +81,20 @@ func writeToFile(sb strings.Builder) (bool, error) {
 }
 
 func isOperator(curChar string) bool {
-	operators := map[string]bool{
-		"+": true,
-		"-": true,
-		"*": true,
-		"/": true,
-	}
-	return operators[curChar]
+	return curChar == "+" || curChar == "-" || curChar == "*" || curChar == "/"
 }
 
 func lessPrioritized(oper1 string, oper2 string) bool {
-	if (oper1 == "-" || oper1 == "+") && (oper2 == "/" || oper2 == "*") || (oper1 == oper2) ||
-		(oper1 == "+" && oper2 == "-") || (oper1 == "-" && oper2 == "+") {
-		return true
-	} else {
-		return false
+	return priority(oper1) <= priority(oper2)
+}
+
+func priority(op string) int {
+	switch op {
+	case "+", "-":
+		return 1
+	case "*", "/":
+		return 2
+	default:
+		return 0
 	}
 }
