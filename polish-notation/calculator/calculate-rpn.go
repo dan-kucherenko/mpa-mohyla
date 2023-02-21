@@ -11,7 +11,7 @@ import (
 	"strings"
 )
 
-func Calculate(filePath string) int64 {
+func Calculate(filePath string) float64 {
 	stack := structure.Stack{}
 	file, err := os.Open(filePath)
 	if err != nil {
@@ -34,12 +34,12 @@ func Calculate(filePath string) int64 {
 		} else if charIsNum, _ := isNum(tok); charIsNum {
 			stack.Push(tok)
 		} else if isOperator(tok) {
-			operand2, _ := strconv.ParseInt(stack.Pop(), 10, 16)
-			operand1, _ := strconv.ParseInt(stack.Pop(), 10, 16)
-			stack.Push(strconv.FormatInt(int64(makeOperation(int16(operand1), int16(operand2), tok)), 10))
+			operand2, _ := strconv.ParseFloat(stack.Pop(), 64)
+			operand1, _ := strconv.ParseFloat(stack.Pop(), 64)
+			stack.Push(strconv.FormatFloat(makeOperation(operand1, operand2, tok), 'f', -2, 64))
 		}
 	}
-	res, _ := strconv.ParseInt(stack.Peek(), 10, 16)
+	res, _ := strconv.ParseFloat(stack.Peek(), 64)
 	return res
 }
 
@@ -61,7 +61,7 @@ func scanVariables(f *os.File) map[string]string {
 	return varmap
 }
 
-func makeOperation(operand1, operand2 int16, operator string) int16 {
+func makeOperation(operand1, operand2 float64, operator string) float64 {
 	switch operator {
 	case "+":
 		return operand1 + operand2

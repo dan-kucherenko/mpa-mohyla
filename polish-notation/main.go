@@ -10,5 +10,5 @@ import (
 func main() {
 	fmt.Println("Encoded example to RPN: " + coder.Code("files/Expr_ar.txt"))
 	fmt.Println("Result of RPN calculation: " +
-		strconv.FormatInt(calculator.Calculate("files/Expr_pol.txt"), 10))
+		strconv.FormatFloat(calculator.Calculate("files/Expr_pol.txt"), 'G', -1, 64))
 }
