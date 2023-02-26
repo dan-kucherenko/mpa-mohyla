@@ -16,7 +16,7 @@ func main() {
 	arrLength, _ := strconv.Atoi(scanner.Text())
 	fmt.Println("Length of the array will be", arrLength)
 	arr := generator.GenerateArr(arrLength)
-	fmt.Println("Generated array:")
-	fmt.Println(arr)
+	fmt.Println("Generated array:", arr, "\n")
 	sorter.MergeSort(arr)
+	fmt.Println("\nResulting array:", arr)
 }
