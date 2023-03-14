@@ -11,15 +11,15 @@ public class Main {
         // Get size and first row of the puzzle from the user
         System.out.print("Enter size of puzzle: ");
         int size = scanner.nextInt();
-        int[][] puzzle = new int[size][size];
+        int[][] sudokuGrid = new int[size][size];
         System.out.print("Enter first row of puzzle: ");
         for (int j = 0; j < size; j++) {
-            puzzle[0][j] = scanner.nextInt();
+            sudokuGrid[0][j] = scanner.nextInt();
         }
-        boolean solutionFound = SudokuSolver.sudokuSolver(puzzle, size);
+        boolean solutionFound = SudokuSolver.sudokuSolver(sudokuGrid, size);
         if (solutionFound) {
             System.out.println("Solution:");
-            SudokuSolver.printPuzzle(puzzle, size);
+            SudokuSolver.printPuzzle(sudokuGrid, size);
         } else {
             System.out.println("No solution found.");
         }
